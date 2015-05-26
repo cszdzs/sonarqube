@@ -17,16 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.server.computation;
+package org.sonar.server.computation.container;
 
-import org.junit.Test;
+import org.sonar.core.platform.ComponentContainer;
+import org.sonar.server.computation.ReportQueue;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class ComputationContainerTest {
-
-  @Test
-  public void componentClasses() {
-    assertThat(ComputationContainer.componentClasses()).isNotEmpty();
+public class CEContainerFactoryImpl implements CEContainerFactory {
+  @Override
+  public CEContainer create(ComponentContainer parent, ReportQueue.Item item) {
+    return new CEContainerImpl(parent, item);
   }
 }

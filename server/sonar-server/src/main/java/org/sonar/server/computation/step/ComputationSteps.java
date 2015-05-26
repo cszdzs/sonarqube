@@ -34,7 +34,7 @@ public class ComputationSteps {
    * List of all {@link org.sonar.server.computation.step.ComputationStep},
    * ordered by execution sequence.
    */
-  public static List<Class<? extends ComputationStep>> orderedStepClasses() {
+  public List<Class<? extends ComputationStep>> orderedStepClasses() {
     return Arrays.asList(
       PopulateComponentsUuidAndKeyStep.class,
 
@@ -80,7 +80,7 @@ public class ComputationSteps {
     return Iterables.transform(orderedStepClasses(), new Function<Class<? extends ComputationStep>, ComputationStep>() {
       @Override
       public ComputationStep apply(Class<? extends ComputationStep> input) {
-        ComputationStep computationStepType = ceContainer.getComponentByType(input);
+        ComputationStep computationStepType = ceContainer.getStep(input);
         if (computationStepType == null) {
           throw new IllegalStateException(String.format("Component not found: %s", input));
         }

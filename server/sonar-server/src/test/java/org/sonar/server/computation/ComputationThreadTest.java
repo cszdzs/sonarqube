@@ -20,28 +20,35 @@
 
 package org.sonar.server.computation;
 
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.sonar.api.utils.log.LogTester;
 import org.sonar.core.computation.db.AnalysisReportDto;
-
-import java.io.IOException;
+import org.sonar.core.platform.ComponentContainer;
+import org.sonar.server.computation.container.CEContainer;
+import org.sonar.server.computation.container.CEContainerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class ComputationThreadTest {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-
   @Rule
   public LogTester logTester = new LogTester();
 
-  ComputationContainer container = mock(ComputationContainer.class);
   ReportQueue queue = mock(ReportQueue.class);
-  ComputationThread sut = new ComputationThread(queue, container);
+  ComponentContainer componentContainer = mock(ComponentContainer.class);
+  CEContainerFactory ceContainerFactory = mock(CEContainerFactory.class);
+  ComputationThread sut = new ComputationThread(queue, componentContainer, ceContainerFactory);
 
   @Test
   public void do_nothing_if_queue_empty() {
@@ -50,19 +57,21 @@ public class ComputationThreadTest {
     sut.run();
 
     verify(queue).pop();
-    verifyZeroInteractions(container);
+    verifyZeroInteractions(ceContainerFactory);
   }
 
   @Test
   public void pop_queue_and_integrate_report() throws IOException {
     AnalysisReportDto report = AnalysisReportDto.newForTests(1L);
     ReportQueue.Item item = new ReportQueue.Item(report, temp.newFile());
+
     when(queue.pop()).thenReturn(item);
+    when(ceContainerFactory.create(componentContainer, item)).thenReturn(mock(CEContainer.class));
 
     sut.run();
 
     verify(queue).pop();
-    verify(container).execute(item);
+    verify(ceContainerFactory).create(componentContainer, item);
   }
 
   @Test
@@ -75,19 +84,9 @@ public class ComputationThreadTest {
   }
 
   @Test
-  public void handle_error_during_integration() throws Exception {
-    AnalysisReportDto report = AnalysisReportDto.newForTests(1L).setProjectKey("P1");
-    ReportQueue.Item item = new ReportQueue.Item(report, temp.newFile());
-    when(queue.pop()).thenReturn(item);
-    doThrow(new IllegalStateException("pb")).when(container).execute(item);
-
-    sut.run();
-
-    assertThat(logTester.logs()).contains("Failed to process analysis report 1 of project P1");
-  }
-
-  @Test
   public void handle_error_during_removal_from_queue() throws Exception {
+    when(ceContainerFactory.create(any(ComponentContainer.class), any(ReportQueue.Item.class))).thenReturn(mock(CEContainer.class));
+
     AnalysisReportDto report = AnalysisReportDto.newForTests(1L).setProjectKey("P1");
     ReportQueue.Item item = new ReportQueue.Item(report, temp.newFile());
     when(queue.pop()).thenReturn(item);
