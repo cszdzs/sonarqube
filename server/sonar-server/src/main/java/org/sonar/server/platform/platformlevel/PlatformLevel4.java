@@ -136,7 +136,6 @@ import org.sonar.server.permission.InternalPermissionTemplateService;
 import org.sonar.server.permission.PermissionFinder;
 import org.sonar.server.permission.ws.PermissionsWs;
 import org.sonar.server.platform.BackendCleanup;
-import org.sonar.server.platform.ServerLifecycleNotifier;
 import org.sonar.server.platform.SettingsChangeNotifier;
 import org.sonar.server.platform.monitoring.DatabaseMonitor;
 import org.sonar.server.platform.monitoring.EsMonitor;
@@ -413,7 +412,6 @@ public class PlatformLevel4 extends PlatformLevel {
       MeasureFilterExecutor.class,
       MeasureFilterEngine.class,
       DefaultMetricFinder.class,
-      ServerLifecycleNotifier.class,
       TimeMachineWs.class,
       ManualMeasuresWs.class,
       MetricsWs.class,
