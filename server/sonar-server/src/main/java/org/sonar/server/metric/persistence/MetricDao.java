@@ -81,7 +81,7 @@ public class MetricDao implements DaoComponent {
   public List<MetricDto> selectByKeys(final DbSession session, List<String> keys) {
     return DaoUtils.executeLargeInputs(keys, new Function<List<String>, List<MetricDto>>() {
       @Override
-      public List<MetricDto> apply(@Nullable List<String> input) {
+      public List<MetricDto> apply(@Nonnull List<String> input) {
         return mapper(session).selectByKeys(input);
       }
     });
@@ -90,7 +90,7 @@ public class MetricDao implements DaoComponent {
   public void disable(final DbSession session, List<Integer> ids) {
     DaoUtils.executeLargeInputsWithoutOutput(ids, new Function<List<Integer>, Void>() {
       @Override
-      public Void apply(@Nullable List<Integer> input) {
+      public Void apply(@Nonnull List<Integer> input) {
         mapper(session).disable(input);
         return null;
       }

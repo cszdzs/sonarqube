@@ -34,6 +34,8 @@ import org.sonar.core.persistence.MyBatis;
 import org.sonar.server.db.DbClient;
 import org.sonar.server.user.UserSession;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public class DeleteAction implements MetricsWsAction {
   public static final String PARAM_IDS = "ids";
   public static final String PARAM_KEYS = "keys";
@@ -67,8 +69,8 @@ public class DeleteAction implements MetricsWsAction {
   public void handle(Request request, Response response) throws Exception {
     userSession.checkLoggedIn().checkGlobalPermission(GlobalPermissions.SYSTEM_ADMIN);
     DbSession dbSession = dbClient.openSession(false);
-    List<Integer> ids = loadIds(dbSession, request);
     try {
+      List<Integer> ids = loadIds(dbSession, request);
       dbClient.metricDao().disable(dbSession, ids);
       dbClient.customMeasureDao().deleteByMetricIds(dbSession, ids);
       dbSession.commit();
@@ -80,18 +82,19 @@ public class DeleteAction implements MetricsWsAction {
   }
 
   private List<Integer> loadIds(DbSession dbSession, Request request) {
-    List<String> ids = request.paramAsStrings(PARAM_IDS);
-    if (ids != null) {
-      return Lists.transform(ids, new Function<String, Integer>() {
+    List<String> idsAsStrings = request.paramAsStrings(PARAM_IDS);
+    List<String> keys = request.paramAsStrings(PARAM_KEYS);
+    checkArgument(idsAsStrings != null || keys != null, "Ids or keys must be provided.");
+    List<Integer> ids = null;
+    if (idsAsStrings != null) {
+      ids = Lists.transform(idsAsStrings, new Function<String, Integer>() {
         @Override
         public Integer apply(String id) {
           return Integer.valueOf(id);
         }
       });
-    }
-    List<String> keys = request.paramAsStrings(PARAM_KEYS);
-    if (keys != null) {
-      return Lists.transform(dbClient.metricDao().selectByKeys(dbSession, keys), new Function<MetricDto, Integer>() {
+    } else if (keys != null) {
+      ids = Lists.transform(dbClient.metricDao().selectByKeys(dbSession, keys), new Function<MetricDto, Integer>() {
         @Override
         public Integer apply(@Nonnull MetricDto input) {
           return input.getId();
@@ -99,6 +102,6 @@ public class DeleteAction implements MetricsWsAction {
       });
     }
 
-    throw new IllegalArgumentException("Ids or keys must be provided.");
+    return ids;
   }
 }

@@ -22,6 +22,8 @@ package org.sonar.server.custommeasure.persistence;
 
 import com.google.common.base.Function;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.sonar.api.server.ServerSide;
 import org.sonar.core.custommeasure.db.CustomMeasureDto;
 import org.sonar.core.custommeasure.db.CustomMeasureMapper;
@@ -38,13 +40,14 @@ public class CustomMeasureDao implements DaoComponent {
   public void deleteByMetricIds(final DbSession session, final List<Integer> metricIds) {
     DaoUtils.executeLargeInputsWithoutOutput(metricIds, new Function<List<Integer>, Void>() {
       @Override
-      public Void apply(List<Integer> input) {
+      public Void apply(@Nonnull List<Integer> input) {
         mapper(session).deleteByMetricIds(metricIds);
         return null;
       }
     });
   }
 
+  @CheckForNull
   public CustomMeasureDto selectNullableById(DbSession session, long id) {
     return mapper(session).selectById(id);
   }

@@ -41,23 +41,25 @@ public class CustomMeasureDaoTest {
   DbSession session;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     DbClient dbClient = new DbClient(db.database(), db.myBatis(), new CustomMeasureDao());
     session = dbClient.openSession(false);
     sut = dbClient.customMeasureDao();
+    db.truncateTables();
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     session.close();
   }
 
   @Test
-  public void insert_and_delete() throws Exception {
+  public void insert() {
     CustomMeasureDto measure = CustomMeasureTesting.newDto();
-    sut.insert(session, measure);
-    CustomMeasureDto result = sut.selectNullableById(session, measure.getId());
 
+    sut.insert(session, measure);
+
+    CustomMeasureDto result = sut.selectNullableById(session, measure.getId());
     assertThat(result.getId()).isEqualTo(measure.getId());
     assertThat(result.getMetricId()).isEqualTo(measure.getMetricId());
     assertThat(result.getResourceId()).isEqualTo(measure.getResourceId());
@@ -67,9 +69,16 @@ public class CustomMeasureDaoTest {
     assertThat(result.getValue()).isCloseTo(measure.getValue(), offset(0.001d));
     assertThat(result.getCreatedAt()).isEqualTo(measure.getCreatedAt());
     assertThat(result.getUpdatedAt()).isEqualTo(measure.getUpdatedAt());
+  }
 
-    sut.deleteByMetricIds(session, Arrays.asList(result.getMetricId()));
+  @Test
+  public void delete() {
+    CustomMeasureDto measure = CustomMeasureTesting.newDto();
+    sut.insert(session, measure);
+    assertThat(sut.selectNullableById(session, measure.getId())).isNotNull();
 
-    assertThat(sut.selectNullableById(session, result.getId())).isNull();
+    sut.deleteByMetricIds(session, Arrays.asList(measure.getMetricId()));
+
+    assertThat(sut.selectNullableById(session, measure.getId())).isNull();
   }
 }
