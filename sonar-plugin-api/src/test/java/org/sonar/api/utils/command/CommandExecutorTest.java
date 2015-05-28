@@ -24,7 +24,6 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -127,7 +126,6 @@ public class CommandExecutorTest {
   }
 
   @Test(timeout = 3000L)
-  @Ignore
   public void should_stop_after_timeout() throws IOException {
     try {
       String executable = getScript("forever");
@@ -139,7 +137,6 @@ public class CommandExecutorTest {
   }
 
   @Test(timeout = 3000L)
-  @Ignore
   public void should_stop_after_timeout_and_new_shell() throws IOException {
     try {
       String executable = getScript("forever");
